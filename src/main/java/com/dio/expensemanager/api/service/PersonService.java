@@ -1,9 +1,10 @@
 package com.dio.expensemanager.api.service;
 
+import com.dio.expensemanager.api.domain.Expense;
 import com.dio.expensemanager.api.domain.Person;
+import com.dio.expensemanager.api.exception.PersonAlredyExist;
 import com.dio.expensemanager.api.exception.PersonNotFoundException;
 import com.dio.expensemanager.api.repository.PersonRepository;
-import javassist.NotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,11 +23,21 @@ public class PersonService {
     }
 
     public Person findByCpf(String cpf) throws PersonNotFoundException {
-        return personRepository.findById(cpf).orElseThrow( () -> new PersonNotFoundException(cpf));
+        return personRepository.findById(cpf).orElseThrow(() -> new PersonNotFoundException(cpf));
     }
 
-    public Person create(Person person) {
+    public Person addExpense(String cpf, Expense expense) throws PersonNotFoundException {
+        Person person = findByCpf(cpf);
+        person.getExpenses().add(expense);
         return personRepository.save(person);
+    }
+
+    public Person create(Person person) throws Exception {
+        if (personRepository.existsById(person.getCpf())) {
+            throw new PersonAlredyExist(person.getCpf());
+        } else {
+            return personRepository.save(person);
+        }
     }
 
     public void deleteByCpf(String cpf) {

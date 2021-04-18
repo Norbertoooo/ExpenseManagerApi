@@ -2,6 +2,8 @@ package com.dio.expensemanager.api.resource;
 
 import com.dio.expensemanager.api.domain.Person;
 import com.dio.expensemanager.api.exception.PersonNotFoundException;
+import com.dio.expensemanager.api.resource.dto.PersonDTO;
+import com.dio.expensemanager.api.resource.mapper.PersonMapper;
 import com.dio.expensemanager.api.service.PersonService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,8 +19,7 @@ import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 import java.util.Collections;
 import java.util.List;
 
-import static com.dio.expensemanager.api.utils.TestUtils.asJsonString;
-import static com.dio.expensemanager.api.utils.TestUtils.createFakePerson;
+import static com.dio.expensemanager.api.utils.TestUtils.*;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -49,36 +50,33 @@ public class PersonResourceTest {
 
     @Test
     void testWhenPOSTIsCalledThenAPersonShouldBeCreated() throws Exception {
-        Person expectedPerson = createFakePerson();
+        PersonDTO personDTO = createFakePersonDto();
+        Person person = PersonMapper.INSTANCE.toModel(personDTO);
 
-        when(personService.create(expectedPerson)).thenReturn(expectedPerson);
+        when(personService.create(person)).thenReturn(person);
 
         mockMvc.perform(post(PERSON_API_URL_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(expectedPerson)))
+                .content(asJsonString(personDTO)))
                 .andDo(print())
                 .andExpect(status().isCreated());
     }
 
     @Test
     void testWhenPUTIsCalledThenAPersonShouldBeUpdated() throws Exception {
-        String cpf = "12321312312";
-        Person expectedPerson = createFakePerson();
-        expectedPerson.setCpf(cpf);
-        Person expectedPersonUpdated = createFakePerson();
-        expectedPersonUpdated.setName("aaaa");
-        when(personService.update(expectedPerson)).thenReturn(expectedPersonUpdated);
+        PersonDTO personDTO = createFakePersonDto();
+        Person person = PersonMapper.INSTANCE.toModel(personDTO);
+        when(personService.update(person)).thenReturn(person);
 
         mockMvc.perform(put(PERSON_API_URL_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(expectedPerson)))
+                .content(asJsonString(personDTO)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cpf", is(expectedPersonUpdated.getCpf())))
-                .andExpect(jsonPath("$.name", is(expectedPersonUpdated.getName())))
-                .andExpect(jsonPath("$.birthday", is(expectedPersonUpdated.getBirthday())))
-                .andExpect(jsonPath("$.salary", is(expectedPersonUpdated.getSalary())))
-                .andExpect(jsonPath("$.office", is(expectedPersonUpdated.getOffice())));
+                .andExpect(jsonPath("$.cpf", is(personDTO.getCpf())))
+                .andExpect(jsonPath("$.name", is(personDTO.getName())))
+                .andExpect(jsonPath("$.salary", is(personDTO.getSalary())))
+                .andExpect(jsonPath("$.office", is(personDTO.getOffice())));
 
     }
 
